@@ -1,0 +1,35 @@
+# Basic QIIME workflow step by step
+
+print_qiime_config.py -tb
+
+# Check mapping file
+rm -rf mapping_output ; validate_mapping_file.py -m map.txt -o check_map/
+
+# Otus Picking
+pick_de_novo_otus.py -i seq.fna -o otus
+
+# Check and remove chimera from OTUs selected sequences
+identify_chimeric_seqs.py -i otus/pynast_aligned_seqs/seq_rep_set_aligned.fasta  -a 	/home/dg/qiime_software/core_set_aligned.fasta.imputed -o chimeric_otu.txt
+filter_fasta.py -f otus/rep_set/seq_rep_set.fasta -o otus/rep_set/seq_rep_set_cc.fasta -s chimeric_otu.txt -n
+filter_fasta.py -f otus/pynast_aligned_seqs/seq_rep_set_aligned_pfiltered.fasta -o otus/pynast_aligned_seqs/seq_rep_set_aligned_cc.fasta -s chimeric_otu.txt -n
+filter_otus_from_otu_table.py -i otus/otu_table.biom -e chimeric_otu.txt -o otus/otu_table_cc.biom
+
+# Print library stats
+biom summarize-table -i otus/otu_table.biom -o library_summary.txt
+biom summarize-table -i otus/otu_table_cc.biom -o library_summary_cc.txt
+
+# Making tree
+make_phylogeny.py -i otus/pynast_aligned_seqs/seq_rep_set_aligned_cc.fasta -o otus/rep_set_cc.tre
+
+# Create a Heat map of the samples
+make_otu_heatmap.py -i otus/otu_table_cc.biom -o otus/otu_heatmap.pdf
+
+# Make Taxa Summary Charts
+summarize_taxa.py -i otus/otu_table_cc.biom -o ./tax
+plot_taxa_summary.py -i tax/otu_table_cc_L2.txt,tax/otu_table_cc_L3.txt,tax/otu_table_cc_L4.txt,tax/otu_table_cc_L5.txt,tax/otu_table_cc_L6.txt -c pie,bar -o output_plots/
+
+
+# Compute alpha diversity as Chao1 and Shannon indexes
+echo "alpha_diversity:metrics shannon,chao1,observed_species,PD_whole_tree" > alpha_params.txt
+alpha_rarefaction.py -i otus/otu_table_cc.biom -m map.txt -o alpha_rarefaction/ -p alpha_params.txt -t otus/rep_set_cc.tre
+

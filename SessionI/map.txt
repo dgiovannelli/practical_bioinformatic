@@ -1,0 +1,3 @@
+#SampleID	BarcodeSequence	LinkerPrimerSequence	BarcodeName	ProjectName	Description	
+8.515F	GAGTAGAC	GTGCCAGCMGCCGCGGTAA	bac515Fitibar8	PractBio	Treatment
+98.515F	GAGTAGTG	GTGCCAGCMGCCGCGGTAA	bac515Fitibar9	PractBio	Control
